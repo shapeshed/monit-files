@@ -1,0 +1,7 @@
+# Monitor the Resque Queue
+check process resque_worker
+  with pidfile /var/www/vhosts/ideapi.com/httpdocs/current/tmp/pids/resque_worker.pid
+  start program = "/bin/sh -c 'cd /var/www/vhosts/ideapi.com/httpdocs/current; RAILS_ENV=staging QUEUE=* VERBOSE=1 nohup rake environment resque:work& > log/resque_worker.log && echo $! > tmp/pids/resque_worker.pid'" as uid ideapi and gid ideapi
+  stop program = "/bin/sh -c 'cd /var/www/vhosts/ideapi.com/current && kill -s QUIT `cat tmp/pids/resque_worker.pid` && rm -f tmp/pids/resque_worker.pid; exit 0;'"
+  if totalmem is greater than 300 MB for 10 cycles then restart  # eating up memory?
+  group resque_workers
